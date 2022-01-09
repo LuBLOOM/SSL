@@ -4,5 +4,5 @@ uniform vec4 polygon_color = vec4(1.0, 0.0, 0.0, 1.0);
 
 void main()
 {
-	gl_FragColor = polygon_color;
+	gl_FragColor = vec4(gl_FragCoord.x, sin(gl_FragCoord.y), sin(gl_FragCoord.z), 1.0);
 }
