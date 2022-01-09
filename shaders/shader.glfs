@@ -1,6 +1,6 @@
 #version 120
 
-uniform vec4 polygon_color = vec4(1.0, 1.0, 1.0, 1.0);
+uniform vec4 polygon_color = vec4(1.0, 0.0, 0.0, 1.0);
 
 void main()
 {
