@@ -3,7 +3,7 @@
 GLuint shader_load(const char *path, GLenum type)
 {
 	FILE *sf = fopen(path, "r");
-	size_t size = 1024;
+	size_t size = 10000;
 	GLchar *shader_src = malloc(size);
 	GLuint shader = glCreateShader(type);
 
@@ -16,8 +16,8 @@ GLuint shader_load(const char *path, GLenum type)
 	for (i = 0; (c = fgetc(sf)) != EOF; ++i) {
 		*(shader_src+i) = c;
 		if (i >= size) {
-			size <<= 1;
-			char *tmp = realloc(shader_src, size);
+			size <<= 2;
+			char *tmp = (char *)realloc(shader_src, size);
 			if (tmp != 0) {
 				memcpy(tmp, shader_src, size);
 			} else {

@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <sys/time.h>
 
 #include "../include/ui.h"
 #include "../include/shader.h"
@@ -8,6 +9,11 @@ static GLfloat *shader_vertices;
 static GLuint vertex_buffer;
 static GLuint *shader_indices;
 static GLuint index_buffer;
+
+static GLfloat iTime;
+static GLuint iTime_uniform;
+
+static struct timeval start_time, curr_time;
 
 static void shader_setup(const char *, const char *);
 static void shader_render(void);
@@ -89,7 +95,15 @@ static void shader_setup(const char *vertex_path, const char *fragment_path)
 	glLinkProgram(shader_pid);
 
 	glDeleteShader(vertex_shader);
-	glDeleteShader(fragment_shader);	
+	glDeleteShader(fragment_shader);
+
+	iTime_uniform = glGetUniformLocation(shader_pid, "iTime");
+	if (-1 == iTime_uniform) {
+		printf("iTime is not a valid glsl program variable\n");
+	}
+
+	iTime = 0.f;
+	gettimeofday(&start_time, 0);
 }
 
 static void shader_render(void)
@@ -97,6 +111,8 @@ static void shader_render(void)
 	glUseProgram(shader_pid);
 	glLoadIdentity();
 	glScalef(UI_WINDOW_WIDTH, UI_WINDOW_HEIGHT, 1.0);
+	
+	glUniform1f(iTime_uniform, iTime);
 
 	glEnableClientState(GL_VERTEX_ARRAY);
 	
@@ -109,6 +125,8 @@ static void shader_render(void)
 	glDisableClientState(GL_VERTEX_ARRAY);
 	
 	glUseProgram(0);
+	gettimeofday(&curr_time, 0);
+	iTime = (curr_time.tv_sec - start_time.tv_sec) + (curr_time.tv_usec - start_time.tv_usec)/1000000.f;
 }
 
 static void shader_free(void)
