@@ -13,6 +13,9 @@ static GLuint index_buffer;
 static GLfloat iTime;
 static GLuint iTime_uniform;
 
+static int iResolution[2];
+static GLuint iResolution_uniform;
+
 static struct timeval start_time, curr_time;
 
 static void shader_setup(const char *, const char *);
@@ -104,6 +107,21 @@ static void shader_setup(const char *vertex_path, const char *fragment_path)
 
 	iTime = 0.f;
 	gettimeofday(&start_time, 0);
+
+	/* Custom iResolution uniform, soon to be implemented
+	iResolution_uniform = glGetUniformLocation(shader_pid, "iResolution");
+	if (-1 == iResolution_uniform) {
+		printf("iResolution is not a valid glsl program variable\n");
+	}
+
+	glUseProgram(shader_pid);
+	
+	SDL_GetWindowSize(window, iResolution+0, iResolution+1);
+	glUniform2iv(iResolution_uniform, 1, iResolution);
+	printf("Width: %d, Height: %d\n", *(iResolution+0), *(iResolution+1));
+
+	glUseProgram(0);
+	*/
 }
 
 static void shader_render(void)
