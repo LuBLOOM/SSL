@@ -3,6 +3,7 @@
 
 #include "../include/ui.h"
 #include "../include/shader.h"
+#include "../include/linear.h"
 
 static GLuint shader_pid;
 static GLfloat *shader_vertices;
@@ -10,11 +11,20 @@ static GLuint vertex_buffer;
 static GLuint *shader_indices;
 static GLuint index_buffer;
 
-static GLfloat iTime;
-static GLuint iTime_uniform;
+static GLfloat e_time;
+static GLuint e_time_uniform;
 
-static int iResolution[2];
-static GLuint iResolution_uniform;
+static int resolution[2];
+static GLuint resolution_uniform;
+
+static float mouse[2];
+static unsigned mouse_uniform;
+
+static unsigned modelviewmatrix_uniform;
+static float   *modelviewmatrix;
+
+static unsigned projectionmatrix_uniform;
+static float   *projectionmatrix;
 
 static struct timeval start_time, curr_time;
 
@@ -32,6 +42,10 @@ int main(int argc, char **argv)
 	while (ui_active) {
 		while (SDL_PollEvent(&event)) {
 			ui_events(event);
+			if (event.type == SDL_MOUSEMOTION) {
+				*(mouse+0) = event.motion.x;
+				*(mouse+1) = event.motion.y;
+			}
 		}
 		ui_render_start();
 		shader_render();
@@ -48,6 +62,9 @@ static void shader_setup(const char *vertex_path, const char *fragment_path)
 {
  	shader_vertices = (GLfloat *)malloc(12 * sizeof *shader_vertices);
 	shader_indices = (GLuint *)malloc(6 * sizeof *shader_indices);
+
+	modelviewmatrix = (float *)malloc(16 * sizeof *modelviewmatrix);
+	projectionmatrix = (float *)malloc(16 * sizeof *projectionmatrix);
 
 	*(shader_vertices+0) = 0.f;
 	*(shader_vertices+1) = 0.f;
@@ -100,37 +117,57 @@ static void shader_setup(const char *vertex_path, const char *fragment_path)
 	glDeleteShader(vertex_shader);
 	glDeleteShader(fragment_shader);
 
-	iTime_uniform = glGetUniformLocation(shader_pid, "iTime");
-	if (-1 == iTime_uniform) {
-		printf("iTime is not a valid glsl program variable\n");
+	glUseProgram(shader_pid);
+
+	e_time_uniform = glGetUniformLocation(shader_pid, "e_time");
+	if (-1 == e_time_uniform) {
+		printf("e_time is not a valid glsl program variable\n");
 	}
 
-	iTime = 0.f;
+	modelviewmatrix_uniform = glGetUniformLocation(shader_pid, "modelviewmatrix");
+	if (-1 == modelviewmatrix_uniform) {
+		printf("modelviewmatrix is not a valid glsl program variable\n");
+	}
+
+	projectionmatrix_uniform = glGetUniformLocation(shader_pid, "projectionmatrix");
+	if (-1 == projectionmatrix_uniform) {
+		printf("projectionmatrix is not a valid glsl program variable\n");
+	}
+
+	e_time = 0.f;
 	gettimeofday(&start_time, 0);
 
-	/* Custom iResolution uniform, soon to be implemented
-	iResolution_uniform = glGetUniformLocation(shader_pid, "iResolution");
-	if (-1 == iResolution_uniform) {
-		printf("iResolution is not a valid glsl program variable\n");
+	for (int i = 0; i < 2; i++) *(mouse+i) = 0;
+
+	resolution_uniform = glGetUniformLocation(shader_pid, "resolution");
+	if (-1 == resolution_uniform) {
+		printf("resolution is not a valid glsl program variable\n");
 	}
 
-	glUseProgram(shader_pid);
+	mouse_uniform = glGetUniformLocation(shader_pid, "mouse");
+	if (-1 == mouse_uniform) {
+		printf("mouse is not a valid glsl program variable\n");
+	}
 	
-	SDL_GetWindowSize(window, iResolution+0, iResolution+1);
-	glUniform2iv(iResolution_uniform, 1, iResolution);
-	printf("Width: %d, Height: %d\n", *(iResolution+0), *(iResolution+1));
+	SDL_GetWindowSize(window, resolution+0, resolution+1);
+	glUniform2iv(resolution_uniform, 1, resolution);
+	
+	mat4_init(modelviewmatrix);
+	mat4_scale(modelviewmatrix, UI_WINDOW_WIDTH, UI_WINDOW_HEIGHT, 1.);
+	mat4_ortho(projectionmatrix, 0., UI_WINDOW_WIDTH, UI_WINDOW_HEIGHT, 0., 1., -1.);
 
+	glUniformMatrix4fv(modelviewmatrix_uniform, 1, GL_FALSE, modelviewmatrix);
+	glUniformMatrix4fv(projectionmatrix_uniform, 1, GL_FALSE, projectionmatrix);
+	
 	glUseProgram(0);
-	*/
 }
 
 static void shader_render(void)
 {
 	glUseProgram(shader_pid);
-	glLoadIdentity();
-	glScalef(UI_WINDOW_WIDTH, UI_WINDOW_HEIGHT, 1.0);
 	
-	glUniform1f(iTime_uniform, iTime);
+	glUniform1f(e_time_uniform, e_time);
+	glUniform2fv(mouse_uniform, 1, mouse);
 
 	glEnableClientState(GL_VERTEX_ARRAY);
 	
@@ -144,7 +181,7 @@ static void shader_render(void)
 	
 	glUseProgram(0);
 	gettimeofday(&curr_time, 0);
-	iTime = (curr_time.tv_sec - start_time.tv_sec) + (curr_time.tv_usec - start_time.tv_usec)/1000000.f;
+	e_time = (curr_time.tv_sec - start_time.tv_sec) + (curr_time.tv_usec - start_time.tv_usec)/1000000.f;
 }
 
 static void shader_free(void)
@@ -152,5 +189,7 @@ static void shader_free(void)
 	glDeleteProgram(shader_pid);
 	free(shader_vertices);
 	free(shader_indices);
+	free(modelviewmatrix);
+	free(projectionmatrix);
 	shader_pid = 0;
 }

@@ -1,4 +1,0 @@
-#ifndef __SSL_SHADER_SURFACE_H
-#define __SSL_SHADER_SURFACE_H
-
-#endif /* __SSL_SHADER_SURFACE_H
