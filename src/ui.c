@@ -1,5 +1,9 @@
 #include "../include/ui.h"
 
+SDL_Window *window;
+SDL_GLContext *context;
+unsigned char ui_active;
+
 void ui_init(const char *title, const unsigned w, const unsigned h, const unsigned flags)
 {
 	ui_active = 1;

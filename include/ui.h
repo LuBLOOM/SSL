@@ -7,14 +7,14 @@
 #include <GL/gl.h>
 #include <GL/glu.h>
 
+extern SDL_Window *window;
+extern SDL_GLContext *context;
+extern unsigned char ui_active;
+
 #define UI_WINDOW_NAME "SSL - Simple Shader Lab"
 #define UI_WINDOW_WIDTH 1200
 #define UI_WINDOW_HEIGHT 800
 #define UI_WINDOW_FLAGS (SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL)
-
-SDL_Window *window;
-SDL_GLContext *context;
-unsigned char ui_active;
 
 void ui_init(const char *, const unsigned, const unsigned, const unsigned);
 void ui_render_start(void);
